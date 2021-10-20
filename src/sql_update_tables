@@ -1,0 +1,103 @@
+import #import neccessary libraries
+
+
+@click.command()
+@click.option('--dry_run', is_flag=True, default=False,
+              help="Dry run build data")
+def build_data(dry_run):
+    """Build data for downstream usage e.g. lookup publishing"""
+    if dry_run:
+        sql.backend='fake' #meaning that connection will not be established to upload data but rather test the funtionality of program
+
+    
+    # Update view
+    tabeview1.update(new=1)
+
+    # Update view
+    tableview2.update_range(date_range=date()<<30, new=False, step_days=31)
+
+    sql.run_query('collect stats on ' + tableview1.table_name)
+
+    sl = SiteLocationCountryChannel(
+        indices = ['site'],
+        table_schema = 'tableview1',
+        short_table_name = 'tableview1')
+    sl.update()
+
+
+
+@click.command()
+def tableview1():
+
+  re_evaluations = SimpleTable(
+          table_schema='tableview1',
+          short_table_name='tableview2',
+          src_table = tableview1,
+          indices=['id'],
+          use_format_method=True,
+          date_column='dt',
+          contents_sql="""select 
+                  a.id, a.proj_id, a.serial,
+                  a.bstr,
+                  'A' as program,
+                  'B' as program_type,
+                  a.site,
+                  a.ts,
+                  a.dt,
+                  a.score,
+                  a.variance
+                  from {self.input_table.table_name} a
+                  WHERE a.bst ('%STR%', '%STR%')
+                  qualify row_number() over (partition by a.id order by a.dt asc) = 1""",
+          on_clause="""
+              incoming.id = existing.id
+              """,
+          when_not_matched_clause="""
+              INSERT
+                  (
+                  id,
+                  proj_id,
+                  serial,
+                  bstr,
+                  program,
+                  program_type,
+                  site,
+                  ts,
+                  dt,
+                  score,
+                  variance)
+                  
+              VALUES
+                  (
+                  incoming.id,
+                  incoming.proj_id,
+                  incoming.serial,
+                  incoming.bstr,
+                  incoming.program,
+                  incoming.program_type,
+                  incoming.site,
+                  incoming.ts,
+                  incoming.dt,
+                  incoming.score,
+                  incoming.variance)
+              """,
+          when_matched_clause = """
+              UPDATE SET
+                  eng_proj_cd = incoming.proj_id,
+                  serial_nr = incoming.serial,
+                  aggregated_decisions_str = incoming.bstr,
+                  program = incoming.program,
+                  program_type =incoming.program_type,
+                  site = incoming.site,
+                  event_ts = incoming.ts,
+                  event_dt = incoming.dt,
+                  suezgreen_score = incoming.score,
+                  suezgreen_threshold = incoming.variance
+                  """)
+
+  re_evaluations.substitutions = {"self": re_evaluations}
+
+  re_evaluations.update_range(date_range= date() << 10, new=False, step_days=5)
+
+
+
