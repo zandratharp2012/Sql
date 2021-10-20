@@ -83,16 +83,16 @@ def tableview1():
               """,
           when_matched_clause = """
               UPDATE SET
-                  eng_proj_cd = incoming.proj_id,
-                  serial_nr = incoming.serial,
-                  aggregated_decisions_str = incoming.bstr,
+                  proj_id = incoming.proj_id,
+                  serial= incoming.serial,
+                  bstr = incoming.bstr,
                   program = incoming.program,
                   program_type =incoming.program_type,
                   site = incoming.site,
-                  event_ts = incoming.ts,
-                  event_dt = incoming.dt,
-                  suezgreen_score = incoming.score,
-                  suezgreen_threshold = incoming.variance
+                  ts = incoming.ts,
+                  dt = incoming.dt,
+                  score = incoming.score,
+                  variance = incoming.variance
                   """)
 
   re_evaluations.substitutions = {"self": re_evaluations}
